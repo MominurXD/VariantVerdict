@@ -1,150 +1,142 @@
-# FareSphere
+# VariantVerdict
 
-**Live-data-first multimodal journey search and 3D transport visualisation.**
+**Experiment decision intelligence for teams that want evidence before rollout.**
 
 Personal project by **Mohammed Mominur Rahman Miah**.
 
-**Live demo:** https://faresphere-mominur.onrender.com
+VariantVerdict is a full-stack A/B-testing decision dashboard. It analyses aggregate experiment results, checks statistical validity and operational guardrails, explores segment-level signals, and stores an auditable history of each decision.
 
-FareSphere combines flights, London ground transport and live GB rail information in one search interface. Its core rule is simple: **never present invented data as a live fare.**
+The project is intentionally built around a more realistic product question than “is the p-value below 0.05?” A treatment can improve conversion and still be unsafe to ship if allocation is broken, latency regresses, or the experiment is underpowered.
 
-## What it does
+## Highlights
 
-- Unified search for flights, TfL journeys and GB rail journeys.
-- Automatic routing based on the origin/destination entered.
-- Live TfL journey planning with quoted fares when TfL supplies them.
-- Live GB rail routes, operators, headcodes, expected times, platforms, delays and connections.
-- Live GB rail departure board.
-- Live flight prices displayed directly inside FareSphere.
-- London metro-airport expansion for codes such as `LON`.
-- London terminal routing, so searches such as `LON → PAD` are treated as ground journeys rather than invalid flights.
-- GB rail station suggestions using station names or CRS codes.
-- Interactive draggable globe with journey arcs and TfL network overlays.
-- Explicit provider provenance and live/sample separation.
-- Docker deployment and automated CI.
+- Two-proportion z-test for conversion experiments.
+- 95% confidence interval for absolute lift.
+- Sample-ratio mismatch (SRM) detection using a chi-square test.
+- Statistical power and minimum detectable effect diagnostics.
+- Operational latency guardrail.
+- Segment analysis with Holm multiple-testing correction.
+- Daily control/treatment trajectory visualisation.
+- Aggregate CSV import with schema validation.
+- SQLite-backed audit history.
+- Reproducible synthetic scenarios designed to expose common experimentation mistakes.
+- Responsive, dependency-free dashboard frontend.
+- FastAPI backend, automated tests, Docker and GitHub Actions CI.
 
-## Example searches
+## Dashboard preview
 
-| Search | Routed to |
-| --- | --- |
-| `LON → BCN` | Live flight provider |
-| `LON → LHR` | TfL Journey Planner + quoted fare |
-| `LON → PAD` | TfL Journey Planner via London Paddington stop resolution |
-| `EUS → MAN` | Live GB rail journey data |
-| `KGX` in the rail board | Live GB departures |
+![VariantVerdict dashboard](docs/screenshots/dashboard.png)
 
-## Data-integrity rules
+The UI is responsive; a mobile capture is also included in `docs/screenshots/mobile.png`.
 
-FareSphere deliberately fails closed when a provider does not supply a field.
+## Why this project is different
 
-1. **No fake live prices.** Missing prices remain unavailable.
-2. **No £0 rail fares.** Operational rail data is not treated as ticket pricing.
-3. **No guessed baggage charges.**
-4. **No synthetic flexible-date savings in live mode.**
-5. **Provider provenance stays attached to results.**
-6. **Flight prices should be revalidated before booking.**
-7. **Licensed rail fares are still required for true cross-modal price comparison.**
+Most portfolio A/B-testing projects stop at “variant B won.” VariantVerdict models the decision layer around an experiment:
 
-## Current integrations
+1. **Is the assignment trustworthy?** SRM catches badly split traffic.
+2. **Did the treatment improve the primary metric?** A two-proportion z-test estimates lift and uncertainty.
+3. **Did the experience regress elsewhere?** A latency guardrail can block an otherwise statistically significant winner.
+4. **Was the test informative enough?** Power and MDE are shown as planning diagnostics.
+5. **Are subgroup findings robust?** Segment p-values are adjusted with Holm’s method and clearly labelled exploratory.
+6. **Can the decision be reproduced?** Each run is stored as an evidence snapshot in SQLite.
 
-| Source | Purpose | Availability |
+## Built-in scenarios
+
+| Scenario | Expected decision | Why |
 | --- | --- | --- |
-| OctoTrip Flights | Real-time flight search/prices inside FareSphere | Keyless default flight provider |
-| Transport for London Unified API | Journey planning, quoted fares, stop resolution and network geometry | Anonymous access; app key optional |
-| traini.ac v1 | Live GB rail journeys, station lookup, platforms, delays and departure boards | Keyless public API |
-| Rail Data Marketplace / National Rail Darwin | Optional direct live departure-board source | Consumer key optional |
-| Duffel | Optional commercial flight offers | Access token optional |
-| Skyscanner Flights Live Prices | Optional commercial flight pricing | Approved API key optional |
-| Trainline Partner Solutions | Future licensed rail commerce/fares | Commercial partner access required |
+| Growth vs reliability | Hold | Conversion improves, but latency breaches the release guardrail |
+| Healthy winner | Ship | Positive lift, healthy allocation, sufficient power, clean guardrails |
+| Allocation drift | Hold | Sample-ratio mismatch invalidates the experiment |
+| Noisy experiment | Collect | Not enough evidence to make a rollout decision |
 
-## How routing works
+## CSV schema
 
-FareSphere's FastAPI backend classifies each request before calling a provider:
+VariantVerdict deliberately accepts **aggregate** data rather than individual customer events.
 
-1. London city/airport pairs use TfL Journey Planner.
-2. London city/airport + a resolved London rail terminal also uses TfL.
-3. Two resolved GB rail endpoints use the live GB rail provider.
-4. Remaining three-letter routes are treated as flights.
+```csv
+date,segment,variant,assigned,conversions,latency_ms,error_rate
+2026-09-01,Desktop,control,1000,112,180,0.006
+2026-09-01,Desktop,treatment,1000,128,218,0.006
+```
 
-This prevents cases such as `LON → PAD` from being expanded into nonsense flight searches like `LHR → PAD`.
+Required columns:
 
-## Current rail-fare limitation
+- `date`
+- `segment`
+- `variant` (`control` or `treatment`)
+- `assigned`
+- `conversions`
+- `latency_ms`
+- `error_rate` (0–1)
 
-The keyless GB rail source provides live operational journey information but **not ticket fares**. FareSphere therefore displays **Fare unavailable** instead of inventing a price.
+## Statistical methods
 
-Currently supported for GB rail:
+### Primary metric
 
-- live station lookup;
-- same-day journey routing;
-- operators and train headcodes;
-- scheduled/expected times;
-- platforms and delays;
-- connection information;
-- live departure boards.
+Two-sided pooled two-proportion z-test for the conversion difference. The interval shown for absolute lift uses the unpooled normal-approximation standard error.
 
-A licensed National Rail/rail-commerce fare source is still required for ticket prices and complete future-date rail fare comparison.
+### Sample-ratio mismatch
+
+Pearson chi-square goodness-of-fit test against the planned treatment allocation. A very small p-value is treated as an experiment-integrity blocker.
+
+### Segment analysis
+
+Each segment is analysed with the same two-proportion test. P-values are corrected with the Holm step-down procedure to control family-wise error across the displayed exploratory segments.
+
+### Power / MDE
+
+Normal-approximation diagnostics are included to help explain whether the experiment was likely capable of detecting the observed/planned effect. They are not presented as a replacement for a pre-registered power analysis.
+
+## Architecture
+
+```text
+Browser dashboard
+      |
+      v
+FastAPI REST API
+  |      |      |
+  |      |      +--> SQLite audit history
+  |      +---------> statistical analysis engine
+  +----------------> reproducible scenarios / CSV import
+```
+
+The production frontend uses plain HTML/CSS/JavaScript so the statistical logic and backend remain the focus.
 
 ## Run locally
 
-Copy the example environment file:
-
 ```bash
-cp .env.example .env
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+PYTHONPATH=. uvicorn app.main:app --reload
 ```
 
-Then run with Docker:
-
-```bash
-docker compose up --build
-```
-
-Open `http://localhost:5173`.
-
-The FastAPI documentation is available at `http://localhost:8000/docs`.
-
-## Optional provider credentials
-
-```env
-TFL_APP_KEY=
-NATIONAL_RAIL_API_KEY=
-NATIONAL_RAIL_DEPARTURES_URL=
-DUFFEL_ACCESS_TOKEN=
-SKYSCANNER_API_KEY=
-TRAINLINE_API_BASE_URL=
-TRAINLINE_API_TOKEN=
-```
-
-Credentials are server-side only and must never be committed.
+Open `http://localhost:8000`.
 
 ## Tests
 
 ```bash
-cd backend
 PYTHONPATH=. pytest -q
-
-cd ..
 node --check web/app.js
-node --test web/tests/*.test.mjs
-python scripts/validate_static.py
-docker build -t faresphere-ci .
+docker build -t variantverdict .
 ```
 
-CI validates the backend, frontend JavaScript, globe geometry, static UI and production Docker image. Regression tests cover London airport transfers, `LON → PAD`, metropolitan flight expansion and GB rail parsing.
+## API
 
-## Deployment
+- `GET /api/health`
+- `GET /api/scenarios`
+- `POST /api/scenarios/{scenario_id}`
+- `POST /api/analyze`
+- `POST /api/import/csv`
+- `GET /api/history`
+- `GET /api/history/{run_id}`
 
-Public deployment:
+Interactive API documentation is available at `/docs` when the FastAPI app is running.
 
-https://faresphere-mominur.onrender.com
+## Responsible interpretation
 
-Health endpoint:
-
-`/api/v1/health`
-
-## Attribution and independence
-
-FareSphere is an independent personal project and is not affiliated with or endorsed by its data providers. Third-party transport data and booking links remain subject to the relevant provider terms and licences.
+VariantVerdict does not auto-deploy products and does not claim that a p-value alone determines business truth. Statistical significance, experiment integrity, operational guardrails, effect size and product context should all be reviewed together.
 
 ## Licence
 
-MIT. Third-party transport data remains subject to the applicable provider/data licences.
+MIT.
