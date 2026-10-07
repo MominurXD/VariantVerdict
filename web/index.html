@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VariantVerdict — Experiment decision intelligence</title>
+  <meta name="description" content="A/B test decision dashboard with statistical checks, guardrails, segment analysis and an auditable SQLite history." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><span class="logo">V.</span><div><strong>variantverdict</strong><small>experiment intelligence</small></div></div>
+    <nav>
+      <span class="nav-label">workspace</span>
+      <button class="nav-item active">▦ <span>Overview</span><b>01</b></button>
+      <button class="nav-item">◇ <span>Experiment lab</span></button>
+      <button class="nav-item">⬡ <span>Integrity checks</span></button>
+      <button class="nav-item">▤ <span>Segments</span></button>
+      <button class="nav-item">◷ <span>Run history</span></button>
+      <span class="nav-label">data sources</span>
+      <div class="source-item">⌘ <div><b>Synthetic scenarios</b><small>Reproducible seed data</small></div><i>✓</i></div>
+      <div class="source-item">↑ <div><b>Aggregate CSV</b><small>Bring your own results</small></div></div>
+    </nav>
+    <div class="sidebar-foot"><div><span class="online-dot"></span> Local API connected <em>online</em></div><small>PERSONAL PROJECT · V1.0<br/>BUILT BY MOHAMMED MOMINUR RAHMAN MIAH</small></div>
+  </aside>
+
+  <main>
+    <header class="topbar"><div>WORKSPACE <span>/</span> EXPERIMENT INTELLIGENCE <span>/</span> OVERVIEW</div><div><span class="status-dot"></span> NO PAID APIS <span class="avatar">MM</span></div></header>
+
+    <section class="hero">
+      <div class="hero-copy"><span class="eyebrow lime">— &nbsp; THE DECISION LAYER</span><h1>Proof before<br/><em>progress.</em></h1><p>Read the lift. Challenge the data. Protect the customer experience. An experimentation command centre built for responsible shipping decisions.</p><div class="hero-points"><b>01</b> Detect allocation drift <b>02</b> Check guardrails <b>03</b> Explain the call</div></div>
+      <div class="hero-signal"><span>SIGNAL · DECISION</span><div class="radar"><i></i><i></i><i></i><b>+</b><u></u></div><div class="confidence"><small>CONFIDENCE IS ONE INPUT.<br/>NOT THE ONLY ONE.</small><strong id="hero-confidence">95<sup>%</sup></strong></div></div>
+    </section>
+
+    <section class="section-head"><div><span class="eyebrow">ACTIVE WORKSPACE &nbsp; — &nbsp; 001</span><h2>Experiment decision room</h2><p>Select a scenario or analyse your own aggregate experiment results.</p></div><span class="audit-pill">● &nbsp; AUDITABLE ANALYSIS</span></section>
+
+    <section class="decision-grid">
+      <div class="card config-card">
+        <div class="card-kicker">01 / CONFIGURE <span>•••</span></div>
+        <h3>Design your evidence.</h3><p class="muted">Try a deliberately tricky scenario, or upload your own cohort-level CSV.</p>
+        <label class="field-label">EXPERIMENT SCENARIO <span>DEMO DATA</span></label>
+        <div id="scenario-list" class="scenario-list"></div>
+        <div class="config-row"><label><span>LATENCY GUARDRAIL<small>MAX REGRESSION</small></span><input id="guardrail" type="number" value="10" min="0" step="1"><b>%</b></label><label><span>BASELINE CONVERSION<small>POWER PLANNING</small></span><input id="baseline" type="number" value="9" min="0" step="0.1"><b>%</b></label></div>
+        <div class="config-row"><label><span>MINIMUM DETECTABLE LIFT<small>RELATIVE</small></span><input id="mde" type="number" value="15" min="1" step="1"><b>%</b></label><div class="horizon"><span>ANALYSIS HORIZON</span><label><input type="checkbox" checked disabled> Fixed-horizon complete</label></div></div>
+        <button id="run-btn" class="primary">Run evidence audit <span>↗</span></button>
+        <div class="upload-row"><button id="import-btn" class="secondary">↥ &nbsp; Import aggregate CSV</button><a href="/sample/aggregate.csv" download>Download example CSV ↓</a><input id="csv-file" type="file" accept=".csv,text/csv" hidden /></div>
+        <p class="micro">✧ No individual-level customer data. This demo stores only report summaries in a local SQLite database.</p>
+      </div>
+
+      <div class="card verdict-card">
+        <div class="card-kicker">02 / INTERPRET <span id="data-mode">SYNTHETIC DEMO</span></div>
+        <span class="field-label">THE RELEASE DECISION</span><div class="verdict-title"><h3>Evidence verdict</h3><small id="run-id">RUN / —</small></div>
+        <div id="verdict-banner" class="verdict-banner hold"><div class="verdict-icon">↘</div><div><small id="verdict-type">STOP / GUARDRAIL</small><strong id="verdict-title">Hold the release</strong><p id="verdict-reason">Run an evidence audit to generate a decision.</p></div></div>
+        <div class="metric-grid"><div><span>CONTROL CONVERSION</span><strong id="control-rate">—</strong><small id="control-n">— assigned users · A</small></div><div><span>TREATMENT CONVERSION</span><strong id="treatment-rate">—</strong><small id="treatment-n">— assigned users · B</small></div><div><span>OBSERVED RELATIVE LIFT</span><strong id="lift">—</strong><small id="ci">95% CI —</small></div><div><span>PRIMARY P-VALUE</span><strong id="pvalue">—</strong><small>Two-sided z-test</small></div></div>
+        <div class="stat-strip"><div>◉ <b id="power">—</b><small>POWER</small></div><div>◇ <b id="latency">—</b><small>LATENCY CHANGE</small></div><div>⌘ <b id="srm">—</b><small>ASSIGNMENT P-VALUE</small></div></div>
+        <p class="interpretation"><b>Interpretation, not automatic deployment.</b> This tool checks statistical and operational guardrails. Release ownership always stays with a human reviewer.</p>
+        <div class="export-row"><button id="export-btn" class="dark-btn">↧ Export evidence JSON</button><small id="row-count">— cohort rows</small></div>
+      </div>
+    </section>
+
+    <div class="divider-title"><span>THE EVIDENCE</span><i></i><b>03 — 05</b></div>
+
+    <section class="evidence-grid">
+      <div class="card chart-card"><div class="card-kicker">03 / TRAJECTORY <span><i class="legend control"></i> CONTROL &nbsp; <i class="legend treatment"></i> TREATMENT</span></div><h3>Conversion over time</h3><p class="muted">Daily conversion rate (%) by assigned variant.</p><div id="chart" class="chart"></div><div class="chart-foot"><span id="window-label">Experiment window —</span><span>Daily rates, not cumulative</span></div></div>
+      <div class="card checks-card"><div class="card-kicker">04 / QUALITY GATES <span>AUTOMATED REVIEW</span></div><h3>What could invalidate this?</h3><p class="muted">A positive lift is worthless if the test or experience is broken.</p><div id="checks"></div><a class="method-link" href="#methodology">Our statistical method ↗</a></div>
+      <div class="card segments-card"><div class="card-kicker">05 / EXPLORATORY <span>HOLM-ADJUSTED P VALUES</span></div><h3>Different users. Different outcomes.</h3><p class="muted">Directional subgroup signals are exploratory; avoid treating them as proven personalised effects.</p><div class="table-wrap"><table><thead><tr><th>SEGMENT</th><th>CONTROL</th><th>TREATMENT</th><th>LIFT</th><th>ADJ. P</th></tr></thead><tbody id="segments"></tbody></table></div></div>
+      <div class="card history-card"><div class="card-kicker">RECENT / AUDIT TRAIL <span>SQLITE</span></div><h3>Decision history</h3><p class="muted">Every analysis leaves a small, reproducible evidence snapshot.</p><div id="history"></div></div>
+    </section>
+
+    <section id="methodology" class="methodology"><div><span class="eyebrow">BEHIND THE NUMBERS</span><h2>Readable maths.<br/><em>Defensible decisions.</em></h2></div><article><span>01 / CONVERSION</span><h4>Two-proportion z test</h4><p>Two-sided pooled z-test and an unpooled normal-approximation 95% interval for absolute lift.</p></article><article><span>02 / INTEGRITY</span><h4>SRM & operational guardrails</h4><p>A sample-ratio chi-square check blocks mismatched cohorts. Mean latency regression is a separate release gate.</p></article><article><span>03 / RESPONSIBILITY</span><h4>Honest uncertainty</h4><p>Power estimates are planning diagnostics; segment tests use Holm adjustment. No individual-level data is stored.</p></article></section>
+
+    <footer><span>VARIANTVERDICT / V1.0</span><span>ENGINEERING + EXPERIMENTATION + STATISTICAL INTEGRITY</span><span>© 2026 MOHAMMED MOMINUR RAHMAN MIAH</span></footer>
+  </main>
+  <div id="toast" class="toast">Analysis completed and added to the local audit trail.</div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
