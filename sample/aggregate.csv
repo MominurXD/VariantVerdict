@@ -1,0 +1,9 @@
+date,segment,variant,assigned,conversions,latency_ms,error_rate
+2026-09-01,Desktop,control,1000,112,180,0.006
+2026-09-01,Desktop,treatment,1000,128,218,0.006
+2026-09-01,Mobile,control,900,70,190,0.007
+2026-09-01,Mobile,treatment,900,79,235,0.007
+2026-09-02,Desktop,control,1000,108,181,0.006
+2026-09-02,Desktop,treatment,1000,126,224,0.006
+2026-09-02,Mobile,control,900,72,188,0.007
+2026-09-02,Mobile,treatment,900,80,232,0.007
